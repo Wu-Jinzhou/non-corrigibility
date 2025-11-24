@@ -15,6 +15,8 @@ JSON artifacts needed for extraction/evaluation runs.
   - `PROMPTS["objective_change_questions"]`, `["shutdown_threat_questions"]`,
     `["belief_correction_questions"]`, `["conflict_of_interest_questions"]`:
     Scenario-specific prompts that each return 40 questions plus a judge rubric.
+    The prompts now avoid embedding the illustrative examples; they instruct the
+    model to invent fresh situations within each theme.
 
 ## Usage
 
