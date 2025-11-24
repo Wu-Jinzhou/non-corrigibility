@@ -1,5 +1,6 @@
 # Corrigibility vs Non-Corrigibility Pipeline
 
+
 This pipeline lives outside the original `persona_vectors` codebase and builds
 trait datasets, scores them, extracts persona vectors, and compares layers.
 
