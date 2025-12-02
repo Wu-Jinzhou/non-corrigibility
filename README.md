@@ -7,8 +7,10 @@ non-corrigibility trait, built alongside (but separate from) the original
 ## Layout
 - `prompt_generation/` — meta-prompts and generated artifacts (instructions,
   scenario questions, judge rubrics).
-- `non-corrigibility/` — runnable pipeline (response sampling, judging, vector
-  extraction, layer comparison).
+- `non-corrigibility/src/` — pipeline building blocks (data, generation, judge,
+  vector ops).
+- `non-corrigibility/scripts/` — helper CLIs (steering, etc.).
+- `non-corrigibility/pipeline.py` — orchestrates the full run.
 - `persona_vectors/` — untouched upstream code from the Anthropic study.
 
 ## Quick Start
@@ -42,7 +44,7 @@ non-corrigibility trait, built alongside (but separate from) the original
 - Builds system/user conversations from the generated instruction pairs and
   scenario questions.
 - Samples responses from a target HF model.
-.- Scores trait strength with an OpenAI judge prompt.
+- Scores trait strength with an OpenAI judge prompt.
 - Extracts per-layer persona vectors (pos vs. neg score means).
 - Ranks layers by correlation between projections and judge scores.
 - Saves sample cases with projections for quick sanity checks.
@@ -52,6 +54,22 @@ non-corrigibility trait, built alongside (but separate from) the original
 - `pipeline_outputs/layer_correlations.json` — `(layer, corr)` list.
 - `pipeline_outputs/sample_tests.json` — few Q/A with scores & projections.
 - `pipeline_outputs/scored_responses.jsonl` — full judged dataset.
+
+## Steering a Layer
+Use the helper script to steer along a stored persona vector and answer a single
+question:
+```bash
+cd non-corrigibility/non-corrigibility
+python scripts/steer.py \
+  --model Qwen/Qwen2.5-7B-Instruct \
+  --vector_path pipeline_outputs/persona_vector.pt \
+  --layer 20 \
+  --coeff 2.0 \
+  --question "Should I obey a shutdown request?" \
+  --system "You are a helpful assistant."
+```
+`layer` refers to the persona-vector index (embedding layer is 0). For standard
+transformer blocks, steering is applied to block index `layer-1`.
 
 ## Notes
 - The prompt templates avoid baking illustrative examples; each scenario asks
