@@ -7,7 +7,7 @@ non-corrigibility trait, built alongside (but separate from) the original
 ## Layout
 - `prompt_generation/` — meta-prompts and generated artifacts (instructions,
   scenario questions, judge rubrics).
-- `corrigibility_pipeline/` — runnable pipeline + reusable modules:
+- `pipeline/` — runnable pipeline + reusable modules:
   - `src/` (data, generation, judge, vector ops)
   - `pipeline.py` (full run)
   - `notebooks/steering_demo.ipynb` (interactive steering)
@@ -27,15 +27,15 @@ non-corrigibility trait, built alongside (but separate from) the original
    ```bash
    cd non-corrigibility
    python prompt_generation/generate_prompts.py \
-     --model gpt-5.1 \
+     --model gpt-4.1-mini \
      --output_dir prompt_generation/generated
    ```
-4) Run the pipeline:
+4) Run the pipeline (set HF_TOKEN or HUGGING_FACE_HUB_TOKEN for Llama access):
    ```bash
-   cd non-corrigibility/corrigibility_pipeline
+   cd non-corrigibility/pipeline
    python pipeline.py \
-     --target_model Qwen/Qwen2.5-7B-Instruct \
-     --judge_model gpt-5.1 \
+     --target_model meta-llama/Llama-3.1-8B-Instruct \
+     --judge_model gpt-4.1-mini \
      --artifacts_dir ../prompt_generation/generated \
      --output_dir pipeline_outputs
    ```
@@ -56,7 +56,7 @@ non-corrigibility trait, built alongside (but separate from) the original
 - `pipeline_outputs/scored_responses.jsonl` — full judged dataset.
 
 ## Steering a Layer
-Use the interactive notebook at `corrigibility_pipeline/notebooks/steering_demo.ipynb`
+Use the interactive notebook at `pipeline/notebooks/steering_demo.ipynb`
 to load a persona vector, pick a layer/strength, and generate a steered answer
 to any question. `layer` refers to the persona-vector index (embedding layer is
 0); for standard transformer blocks, steering is applied to block index

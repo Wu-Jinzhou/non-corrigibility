@@ -11,6 +11,7 @@ Steps:
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 import numpy as np
@@ -36,7 +37,8 @@ def main(args):
     instructions, scenarios = load_artifacts(artifacts_dir)
     conversations = build_conversations(instructions, scenarios)
 
-    model, tokenizer = load_model_tokenizer(args.target_model)
+    hf_token = os.getenv(args.hf_token_env) or os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+    model, tokenizer = load_model_tokenizer(args.target_model, hf_token)
 
     generated = generate_responses(
         model,
@@ -75,7 +77,8 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Corrigibility vs non-corrigibility pipeline")
     parser.add_argument("--artifacts_dir", type=str, default="../prompt_generation/generated")
-    parser.add_argument("--target_model", type=str, required=True)
+    parser.add_argument("--target_model", type=str, default="meta-llama/Llama-3.1-8B-Instruct")
+    parser.add_argument("--hf_token_env", type=str, default="HF_TOKEN", help="Env var name holding HF access token.")
     parser.add_argument("--judge_model", type=str, default="gpt-4.1-mini")
     parser.add_argument("--output_dir", type=str, default="pipeline_outputs")
     parser.add_argument("--max_new_tokens", type=int, default=256)

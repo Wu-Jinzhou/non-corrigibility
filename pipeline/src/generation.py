@@ -1,12 +1,15 @@
-from typing import Dict, List, Tuple
+import os
+from typing import Dict, List, Tuple, Optional
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
-def load_model_tokenizer(model_name: str):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto")
+def load_model_tokenizer(model_name: str, hf_token: Optional[str] = None):
+    """Load model/tokenizer with optional HF auth token from env."""
+    token = hf_token or os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+    tokenizer = AutoTokenizer.from_pretrained(model_name, token=token)
+    model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", token=token)
     return model, tokenizer
 
 

@@ -12,9 +12,10 @@ trait datasets, scores them, extracts persona vectors, and compares layers.
 
 2) **Run pipeline**
    ```bash
-   cd non-corrigibility/corrigibility_pipeline
+   cd non-corrigibility/pipeline
+   HF_TOKEN=... \  # or HUGGING_FACE_HUB_TOKEN
    python pipeline.py \
-     --target_model Qwen/Qwen2.5-7B-Instruct \
+     --target_model meta-llama/Llama-3.1-8B-Instruct \
      --judge_model gpt-4.1-mini \
      --artifacts_dir ../prompt_generation/generated \
      --output_dir pipeline_outputs
@@ -30,8 +31,8 @@ trait datasets, scores them, extracts persona vectors, and compares layers.
      layer for steering or monitoring.
 
 4) **Simple tests**
-   - `sample_tests.json` shows a few question/response pairs with trait scores
-     and projection magnitudes on the best layer.
+- `sample_tests.json` shows a few question/response pairs with trait scores
+  and projection magnitudes on the best layer.
 
 5) **Steering notebook**
    - Use `notebooks/steering_demo.ipynb` to load a persona vector, pick
@@ -41,5 +42,7 @@ trait datasets, scores them, extracts persona vectors, and compares layers.
 
 - The prompt templates avoid baking illustrative examples; each scenario asks
   for fresh situations within its theme.
+- HF hub access: set `HF_TOKEN` or `HUGGING_FACE_HUB_TOKEN` for gated models
+  like `meta-llama/Llama-3.1-8B-Instruct`.
 - The judge prompt and response generation use OpenAI; set `OPENAI_API_KEY`
   before running.
