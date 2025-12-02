@@ -16,7 +16,7 @@ non-corrigibility trait, built alongside (but separate from) the original
 ## Quick Start
 1) Install deps (uses `openai`, `transformers`, `torch`):
    ```bash
-   pip install -r persona_vectors/requirements.txt
+   pip install -r requirements.txt
    ```
 2) Set API key for judging:
    ```bash
@@ -27,7 +27,7 @@ non-corrigibility trait, built alongside (but separate from) the original
    ```bash
    cd non-corrigibility
    python prompt_generation/generate_prompts.py \
-     --model gpt-4.1-mini \
+     --model gpt-5.1 \
      --output_dir prompt_generation/generated
    ```
 4) Run the pipeline:
@@ -35,7 +35,7 @@ non-corrigibility trait, built alongside (but separate from) the original
    cd non-corrigibility/corrigibility_pipeline
    python pipeline.py \
      --target_model Qwen/Qwen2.5-7B-Instruct \
-     --judge_model gpt-4.1-mini \
+     --judge_model gpt-5.1 \
      --artifacts_dir ../prompt_generation/generated \
      --output_dir pipeline_outputs
    ```
