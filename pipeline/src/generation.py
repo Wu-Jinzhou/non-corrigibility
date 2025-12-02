@@ -3,6 +3,7 @@ from typing import Dict, List, Tuple, Optional
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from tqdm import tqdm
 
 
 def load_model_tokenizer(model_name: str, hf_token: Optional[str] = None):
@@ -30,9 +31,11 @@ def generate_responses(
     max_new_tokens: int = 256,
     temperature: float = 0.7,
     top_p: float = 0.9,
+    verbose: bool = False,
 ) -> List[Dict]:
     outputs = []
-    for conv in conversations:
+    iterator = tqdm(conversations, desc="Generating", disable=not verbose)
+    for conv in iterator:
         prompt = apply_chat_template(tokenizer, conv["system"], conv["question"])
         tok = tokenizer(prompt, return_tensors="pt").to(model.device)
         with torch.no_grad():

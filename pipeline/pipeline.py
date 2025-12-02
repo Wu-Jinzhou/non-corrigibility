@@ -38,7 +38,13 @@ def main(args):
     conversations = build_conversations(instructions, scenarios)
 
     hf_token = os.getenv(args.hf_token_env) or os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+    if args.verbose:
+        print(f"[pipeline] Loaded artifacts from {artifacts_dir} with {len(conversations)} conversations.")
+
     model, tokenizer = load_model_tokenizer(args.target_model, hf_token)
+
+    if args.verbose:
+        print(f"[pipeline] Model loaded: {args.target_model}")
 
     generated = generate_responses(
         model,
@@ -47,28 +53,37 @@ def main(args):
         max_new_tokens=args.max_new_tokens,
         temperature=args.temperature,
         top_p=args.top_p,
+        verbose=args.verbose,
     )
 
     client = OpenAI()
-    scored = judge_responses(generated, judge_model=args.judge_model, client=client)
+    scored = judge_responses(generated, judge_model=args.judge_model, client=client, verbose=args.verbose)
 
     with open(output_dir / "scored_responses.jsonl", "w") as f:
         for row in scored:
             f.write(json.dumps(row) + "\n")
+    if args.verbose:
+        print(f"[pipeline] Saved scored responses to {output_dir/'scored_responses.jsonl'}")
 
     scores = np.array([row["trait_score"] for row in scored], dtype=float)
     hidden = extract_hidden_states(model, tokenizer, scored)
     vectors = compute_persona_vectors(hidden, scores, threshold=args.threshold)
     torch.save(vectors, output_dir / "persona_vector.pt")
+    if args.verbose:
+        print(f"[pipeline] Saved persona vectors to {output_dir/'persona_vector.pt'}")
 
     corrs = layer_correlations(hidden, vectors, scores)
     with open(output_dir / "layer_correlations.json", "w") as f:
         json.dump(corrs, f, indent=2)
+    if args.verbose:
+        print(f"[pipeline] Saved layer correlations to {output_dir/'layer_correlations.json'}")
 
     best_layer = corrs[0][0]
     examples = simple_test(scored, hidden, vectors, best_layer=best_layer, k=5)
     with open(output_dir / "sample_tests.json", "w") as f:
         json.dump(examples, f, indent=2)
+    if args.verbose:
+        print(f"[pipeline] Saved sample tests to {output_dir/'sample_tests.json'}")
 
     print("Top layers by correlation:", corrs[:5])
     print("Sample tests saved to sample_tests.json")
@@ -85,5 +100,6 @@ if __name__ == "__main__":
     parser.add_argument("--temperature", type=float, default=0.7)
     parser.add_argument("--top_p", type=float, default=0.9)
     parser.add_argument("--threshold", type=float, default=50.0)
+    parser.add_argument("--verbose", action="store_true", help="Print progress as the pipeline runs.")
     args = parser.parse_args()
     main(args)

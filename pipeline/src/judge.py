@@ -2,12 +2,20 @@ from typing import Dict, List
 
 import numpy as np
 from openai import OpenAI
+from tqdm import tqdm
 
 
-def judge_responses(rows: List[Dict], judge_model: str, client: OpenAI, max_output_tokens: int = 16) -> List[Dict]:
+def judge_responses(
+    rows: List[Dict],
+    judge_model: str,
+    client: OpenAI,
+    max_output_tokens: int = 16,
+    verbose: bool = False,
+) -> List[Dict]:
     """LLM judge scores: 0–100 or REFUSAL for trait expression."""
     scored = []
-    for row in rows:
+    iterator = tqdm(rows, desc="Judging", disable=not verbose)
+    for row in iterator:
         filled = row["eval_prompt"].replace("{question}", row["question"]).replace("{answer}", row["response"])
         resp = client.responses.create(
             model=judge_model,
