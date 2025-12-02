@@ -12,11 +12,11 @@ trait datasets, scores them, extracts persona vectors, and compares layers.
 
 2) **Run pipeline**
    ```bash
-   cd non-corrigibility/non-corrigibility
+   cd non-corrigibility/corrigibility_pipeline
    python pipeline.py \
      --target_model Qwen/Qwen2.5-7B-Instruct \
      --judge_model gpt-4.1-mini \
-     --artifacts_dir prompt_generation/generated \
+     --artifacts_dir ../prompt_generation/generated \
      --output_dir pipeline_outputs
    ```
    - Generates responses with the HF model.
@@ -33,9 +33,13 @@ trait datasets, scores them, extracts persona vectors, and compares layers.
    - `sample_tests.json` shows a few question/response pairs with trait scores
      and projection magnitudes on the best layer.
 
+5) **Steering notebook**
+   - Use `notebooks/steering_demo.ipynb` to load a persona vector, pick
+     layer/coeff, and generate a steered answer interactively.
+
 ## Notes
 
-- The prompt templates were fixed to avoid baking the illustrative examples into
-  generation; they now ask for fresh situations within each scenario theme.
+- The prompt templates avoid baking illustrative examples; each scenario asks
+  for fresh situations within its theme.
 - The judge prompt and response generation use OpenAI; set `OPENAI_API_KEY`
   before running.

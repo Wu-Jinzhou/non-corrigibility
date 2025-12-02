@@ -22,7 +22,7 @@ JSON artifacts needed for extraction/evaluation runs.
 
 1. Load the template you need:
    ```python
-   from non_corrigibility_study.prompts import PROMPTS
+   from prompt_generation.prompts import PROMPTS
    meta_prompt = PROMPTS["objective_change_questions"]
    ```
 2. Substitute into your frontier LLM request (set temperature/length similar to

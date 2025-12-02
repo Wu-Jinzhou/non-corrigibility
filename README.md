@@ -7,10 +7,10 @@ non-corrigibility trait, built alongside (but separate from) the original
 ## Layout
 - `prompt_generation/` — meta-prompts and generated artifacts (instructions,
   scenario questions, judge rubrics).
-- `non-corrigibility/src/` — pipeline building blocks (data, generation, judge,
-  vector ops).
-- `non-corrigibility/scripts/` — helper CLIs (steering, etc.).
-- `non-corrigibility/pipeline.py` — orchestrates the full run.
+- `corrigibility_pipeline/` — runnable pipeline + reusable modules:
+  - `src/` (data, generation, judge, vector ops)
+  - `pipeline.py` (full run)
+  - `notebooks/steering_demo.ipynb` (interactive steering)
 - `persona_vectors/` — untouched upstream code from the Anthropic study.
 
 ## Quick Start
@@ -32,7 +32,7 @@ non-corrigibility trait, built alongside (but separate from) the original
    ```
 4) Run the pipeline:
    ```bash
-   cd non-corrigibility/non-corrigibility
+   cd non-corrigibility/corrigibility_pipeline
    python pipeline.py \
      --target_model Qwen/Qwen2.5-7B-Instruct \
      --judge_model gpt-4.1-mini \
@@ -56,20 +56,11 @@ non-corrigibility trait, built alongside (but separate from) the original
 - `pipeline_outputs/scored_responses.jsonl` — full judged dataset.
 
 ## Steering a Layer
-Use the helper script to steer along a stored persona vector and answer a single
-question:
-```bash
-cd non-corrigibility/non-corrigibility
-python scripts/steer.py \
-  --model Qwen/Qwen2.5-7B-Instruct \
-  --vector_path pipeline_outputs/persona_vector.pt \
-  --layer 20 \
-  --coeff 2.0 \
-  --question "Should I obey a shutdown request?" \
-  --system "You are a helpful assistant."
-```
-`layer` refers to the persona-vector index (embedding layer is 0). For standard
-transformer blocks, steering is applied to block index `layer-1`.
+Use the interactive notebook at `corrigibility_pipeline/notebooks/steering_demo.ipynb`
+to load a persona vector, pick a layer/strength, and generate a steered answer
+to any question. `layer` refers to the persona-vector index (embedding layer is
+0); for standard transformer blocks, steering is applied to block index
+`layer-1` internally.
 
 ## Notes
 - The prompt templates avoid baking illustrative examples; each scenario asks

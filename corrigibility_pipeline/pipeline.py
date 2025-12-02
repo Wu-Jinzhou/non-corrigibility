@@ -74,7 +74,7 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Corrigibility vs non-corrigibility pipeline")
-    parser.add_argument("--artifacts_dir", type=str, default="prompt_generation/generated")
+    parser.add_argument("--artifacts_dir", type=str, default="../prompt_generation/generated")
     parser.add_argument("--target_model", type=str, required=True)
     parser.add_argument("--judge_model", type=str, default="gpt-4.1-mini")
     parser.add_argument("--output_dir", type=str, default="pipeline_outputs")
