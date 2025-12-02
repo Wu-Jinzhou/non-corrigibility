@@ -14,12 +14,23 @@ trait datasets, scores them, extracts persona vectors, and compares layers.
    ```bash
    cd non-corrigibility/pipeline
    HF_TOKEN=... \  # or HUGGING_FACE_HUB_TOKEN
+   OPENAI_API_KEY=... \
    python pipeline.py \
      --target_model meta-llama/Llama-3.1-8B-Instruct \
-     --judge_model gpt-4.1-mini \
+     --judge_model gpt-5.1 \
      --artifacts_dir ../prompt_generation/generated \
-     --output_dir pipeline_outputs
+     --output_dir pipeline_outputs \
+     --max_new_tokens 256 \
+     --temperature 0.7 \
+     --top_p 0.9 \
+     --threshold 50 \
+     --verbose
    ```
+   Useful tweaks:
+   - `--verbose` for progress bars.
+   - Lower `--max_new_tokens` (e.g., 64–128) to speed up.
+   - Swap `--judge_model` to `gpt-4.1-mini` for faster/cheaper judging.
+   - Trim generated question JSONs (fewer questions) to reduce workload.
    - Generates responses with the HF model.
    - Judges trait strength with the OpenAI model.
    - Extracts persona vectors per layer and saves `persona_vector.pt`.

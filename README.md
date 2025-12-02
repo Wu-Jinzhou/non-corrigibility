@@ -27,18 +27,27 @@ non-corrigibility trait, built alongside (but separate from) the original
    ```bash
    cd non-corrigibility
    python prompt_generation/generate_prompts.py \
-     --model gpt-4.1-mini \
+     --model gpt-5.1 \
      --output_dir prompt_generation/generated
    ```
 4) Run the pipeline (set HF_TOKEN or HUGGING_FACE_HUB_TOKEN for Llama access):
    ```bash
    cd non-corrigibility/pipeline
+   OPENAI_API_KEY=... HF_TOKEN=... \
    python pipeline.py \
      --target_model meta-llama/Llama-3.1-8B-Instruct \
-     --judge_model gpt-4.1-mini \
+     --judge_model gpt-5.1 \
      --artifacts_dir ../prompt_generation/generated \
-     --output_dir pipeline_outputs
+     --output_dir outputs \
+     --max_new_tokens 256 \
+     --temperature 0.7 \
+     --top_p 0.9 \
+     --threshold 50 \
+     --verbose
    ```
+   Options: use `--verbose` for progress bars; lower `--max_new_tokens` or trim
+   questions to speed up; switch `--judge_model gpt-4.1-mini` for a faster,
+   cheaper judge.
 
 ## What the Pipeline Does
 - Builds system/user conversations from the generated instruction pairs and
