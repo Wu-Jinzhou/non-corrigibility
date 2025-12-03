@@ -22,7 +22,8 @@ def extract_hidden_states(model, tokenizer, rows: List[Dict]) -> torch.Tensor:
             resp_tokens = out.hidden_states[layer][:, prompt_len:, :]
             layer_means.append(resp_tokens.mean(dim=1).cpu())
         hidden_list.append(torch.stack(layer_means, dim=0))
-    return torch.stack(hidden_list, dim=0)
+    hidden = torch.stack(hidden_list, dim=0)  # [N, layers+1, 1, hidden]
+    return hidden.squeeze(2)  # [N, layers+1, hidden]
 
 
 def compute_persona_vectors(hidden: torch.Tensor, scores: np.ndarray, threshold: float = 50.0) -> torch.Tensor:
@@ -47,7 +48,7 @@ def layer_correlations(hidden: torch.Tensor, vectors: torch.Tensor, scores: np.n
     """Correlation between per-layer projections and judge scores."""
     corrs = []
     for layer in range(vectors.shape[0]):
-        proj = (hidden[:, layer, :] * vectors[layer]).sum(dim=1).numpy()
+        proj = (hidden[:, layer, :] * vectors[layer]).sum(dim=-1).numpy()
         corr = cosine_corr(proj, scores)
         corrs.append((layer, corr))
     return sorted(corrs, key=lambda x: x[1], reverse=True)
