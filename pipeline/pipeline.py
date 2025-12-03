@@ -29,20 +29,38 @@ from src.vector_ops import (
 )
 
 
+def load_jsonl(path: Path):
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+
+
 def main(args):
     artifacts_dir = Path(args.artifacts_dir)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    generated_path = output_dir / "generated_responses.jsonl"
     scored_path = output_dir / "scored_responses.jsonl"
     persona_path = output_dir / "persona_vector.pt"
     corrs_path = output_dir / "layer_correlations.json"
     samples_path = output_dir / "sample_tests.json"
 
-    if args.resume and scored_path.exists():
+    # If everything already exists and resume is set, exit early.
+    if args.resume and persona_path.exists() and corrs_path.exists() and samples_path.exists():
         if args.verbose:
-            print(f"[pipeline] Resuming from scored responses at {scored_path}")
-        scored = [json.loads(line) for line in scored_path.read_text().splitlines() if line.strip()]
+            print(f"[pipeline] All outputs present; skipping computation.")
+        with open(corrs_path, "r") as f:
+            corrs = json.load(f)
+        print("Top layers by correlation:", corrs[:5])
+        print("Sample tests saved to sample_tests.json")
+        return
+
+    # Stage 1: generation
+    if args.resume and generated_path.exists():
+        if args.verbose:
+            print(f"[pipeline] Resuming from generated responses at {generated_path}")
+        generated = load_jsonl(generated_path)
     else:
         instructions, scenarios = load_artifacts(artifacts_dir)
         conversations = build_conversations(instructions, scenarios)
@@ -64,10 +82,28 @@ def main(args):
             top_p=args.top_p,
             verbose=args.verbose,
         )
+        with open(generated_path, "w") as f:
+            for row in generated:
+                f.write(json.dumps(row) + "\n")
+        if args.verbose:
+            print(f"[pipeline] Saved generated responses to {generated_path}")
 
+    # Stage 2: judging
+    if args.resume and scored_path.exists():
+        if args.verbose:
+            print(f"[pipeline] Resuming from scored responses at {scored_path}")
+        scored = load_jsonl(scored_path)
+    else:
+        hf_token = os.getenv(args.hf_token_env) or os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
+        model, tokenizer = load_model_tokenizer(args.target_model, hf_token)
         client = OpenAI()
-        scored = judge_responses(generated, judge_model=args.judge_model, client=client, verbose=args.verbose)
-
+        scored = judge_responses(
+            generated,
+            judge_model=args.judge_model,
+            client=client,
+            verbose=args.verbose,
+            max_retries=args.max_retries,
+        )
         with open(scored_path, "w") as f:
             for row in scored:
                 f.write(json.dumps(row) + "\n")
@@ -127,5 +163,6 @@ if __name__ == "__main__":
     parser.add_argument("--threshold", type=float, default=50.0)
     parser.add_argument("--verbose", action="store_true", help="Print progress as the pipeline runs.")
     parser.add_argument("--resume", action="store_true", help="Resume from saved scored_responses.jsonl if present.")
+    parser.add_argument("--max_retries", type=int, default=5, help="Max retries for judge API calls.")
     args = parser.parse_args()
     main(args)
