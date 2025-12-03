@@ -30,6 +30,9 @@ def compute_persona_vectors(hidden: torch.Tensor, scores: np.ndarray, threshold:
     """Difference of means between high-scoring (pos) and low-scoring (neg) responses."""
     pos_mask = scores >= threshold
     neg_mask = scores <= (100 - threshold)
+    # Guard against empty masks to avoid NaNs
+    if pos_mask.sum() == 0 or neg_mask.sum() == 0:
+        return torch.zeros_like(hidden[0:1].mean(dim=0))
     pos_mean = hidden[pos_mask].mean(dim=0)
     neg_mean = hidden[neg_mask].mean(dim=0)
     return pos_mean - neg_mean
@@ -41,7 +44,10 @@ def cosine_corr(x: np.ndarray, y: np.ndarray) -> float:
     x = x - x.mean()
     y = y - y.mean()
     denom = (np.sqrt((x**2).sum()) * np.sqrt((y**2).sum())) + 1e-8
-    return float((x * y).sum() / denom)
+    if denom == 0 or np.isnan(denom):
+        return float("nan")
+    num = (x * y).sum()
+    return float(num / denom)
 
 
 def layer_correlations(hidden: torch.Tensor, vectors: torch.Tensor, scores: np.ndarray) -> List[Tuple[int, float]]:

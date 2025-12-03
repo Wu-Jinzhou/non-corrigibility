@@ -74,12 +74,25 @@ def main(args):
         if args.verbose:
             print(f"[pipeline] Saved scored responses to {scored_path}")
 
+    # Filter out NaN scores to avoid NaNs in correlations
+    scored = [row for row in scored if np.isfinite(row.get("trait_score", np.nan))]
+    if args.verbose:
+        print(f"[pipeline] Kept {len(scored)} scored rows after dropping NaNs.")
+
     scores = np.array([row["trait_score"] for row in scored], dtype=float)
+    pos_mask = scores >= args.threshold
+    neg_mask = scores <= (100 - args.threshold)
+    if args.verbose:
+        print(f"[pipeline] Pos count (>= {args.threshold}): {pos_mask.sum()} | Neg count (<= {100 - args.threshold}): {neg_mask.sum()}")
     hf_token = os.getenv(args.hf_token_env) or os.getenv("HF_TOKEN") or os.getenv("HUGGING_FACE_HUB_TOKEN")
     model, tokenizer = load_model_tokenizer(args.target_model, hf_token)
 
     hidden = extract_hidden_states(model, tokenizer, scored)
     vectors = compute_persona_vectors(hidden, scores, threshold=args.threshold)
+    if args.verbose:
+        norms = torch.norm(vectors, dim=1).cpu().numpy()
+        top_norm_layers = sorted(list(enumerate(norms)), key=lambda x: x[1], reverse=True)[:5]
+        print(f"[pipeline] Top layer norms: {top_norm_layers}")
     torch.save(vectors, persona_path)
     if args.verbose:
         print(f"[pipeline] Saved persona vectors to {persona_path}")
